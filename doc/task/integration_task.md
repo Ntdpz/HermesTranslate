@@ -31,7 +31,7 @@ hermes_project/
 ### Task 2: ผูกระบบทั้งหมดลงใน Docker Compose ฉบับสมบูรณ์
 **คำอธิบาย:** ทำให้ระบบทุกส่วนรันเชื่อมโยงกันได้ในคำสั่งเดียว
 1. [ ] เปิดไฟล์ `docker-compose.yml` เขียน Service ให้ครบ 4 ตัว:
-   - `postgres`: ฐานข้อมูล
+   - `postgres`: ฐานข้อมูล (ตั้งค่า Volumes/Healthcheck มาจาก Phase 2 แล้ว)
    - `rabbitmq`: คิวงาน
    - `api`: รัน FastAPI
    - `worker`: รันโค้ด Multi-Agent Consumer

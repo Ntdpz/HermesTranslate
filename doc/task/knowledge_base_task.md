@@ -33,7 +33,7 @@ hermes_project/
 
 ### Task 1: ตั้งค่าการเชื่อมต่อฐานข้อมูล (PostgreSQL)
 **คำอธิบาย:** สร้างตารางเพื่อเก็บข้อมูล "กฎการแปลและคำศัพท์"
-1. [ ] ติดตั้งและรัน PostgreSQL ผ่าน Docker (หรือใช้ฐานข้อมูลที่มีอยู่)
+1. [ ] เพิ่มเซอร์วิส PostgreSQL ลงใน docker-compose.yml โดยต้องตั้งค่า volumes (เก็บข้อมูลถาวร) และ healthcheck (รอ DB พร้อม)
 2. [ ] ในไฟล์ `models.py` สร้างตาราง `TranslationRule` (ต้องมีฟิลด์: `id`, `keyword`, `rule_text`, `updated_at`)
 3. [ ] ในไฟล์ `database.py` เขียนฟังก์ชันเชื่อมต่อ DB แบบ Asynchronous (ใช้ `SQLAlchemy` + `asyncpg`)
 4. [ ] **Definition of Done:** สามารถใช้คำสั่งสร้างตาราง (Migration/Alembic) ลง PostgreSQL ได้สำเร็จ

@@ -13,6 +13,7 @@
 
 ## 🔵 Phase 2: Knowledge Base & Rule Management
 - [ ] **FR-02:** มีฐานข้อมูล PostgreSQL สำหรับเก็บข้อมูลกฎการแปล 
+- [ ] **TR-03 (Infrastructure):** เพิ่มเซอร์วิส PostgreSQL ใน docker-compose.yml พร้อมตั้งค่า Volumes ป้องกันข้อมูลสูญหาย และ Healthcheck
 - [ ] **FR-02:** มี API (Admin Routes) ให้ผู้ดูแลระบบสามารถเพิ่ม / ลด / แก้ไข กฎได้ (CRUD)
 - [ ] **FR-03:** มีฟังก์ชันคัดกรองคำโดยใช้อัลกอริทึม **Aho-Corasick** (สามารถจับ Exact Match และลด Token ได้จริง)
 - [ ] **FR-02 (Conflict):** หากพบกฎที่ขัดแย้งกัน ระบบเลือกใช้กฎที่มี Timestamp ล่าสุดเสมอ
