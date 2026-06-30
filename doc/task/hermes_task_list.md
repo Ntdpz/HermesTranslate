@@ -34,26 +34,26 @@ hermes_project/
 
 ### Task 1: สร้าง API Endpoint พื้นฐาน (FastAPI)
 **คำอธิบาย:** สร้าง API รับข้อมูลและคืนค่า `Task_ID` แบบทันที
-1. [ ] สร้างไฟล์ `schemas.py` ใช้ **Pydantic** กำหนดรับข้อมูลที่มีฟิลด์ `text` (ข้อความที่ต้องการแปล)
-2. [ ] สร้างไฟล์ `main.py` ตั้งค่า **FastAPI** 
-3. [ ] สร้าง Endpoint `POST /translate/`
-4. [ ] ภายใน Endpoint: เมื่อมีการยิง Request เข้ามา ให้ระบบสร้าง `Task_ID` (ใช้ `uuid.uuid4()`) 
-5. [ ] **Definition of Done:** เมื่อยิง Request ผ่าน Postman หรือ Swagger ระบบต้องตอบกลับ HTTP 200/202 พร้อมกับ `{"task_id": "xxxx", "status": "pending"}` **ทันที**
+1. [x] สร้างไฟล์ `schemas.py` ใช้ **Pydantic** กำหนดรับข้อมูลที่มีฟิลด์ `text` (ข้อความที่ต้องการแปล)
+2. [x] สร้างไฟล์ `main.py` ตั้งค่า **FastAPI** 
+3. [x] สร้าง Endpoint `POST /translate/`
+4. [x] ภายใน Endpoint: เมื่อมีการยิง Request เข้ามา ให้ระบบสร้าง `Task_ID` (ใช้ `uuid.uuid4()`) 
+5. [x] **Definition of Done:** เมื่อยิง Request ผ่าน Postman หรือ Swagger ระบบต้องตอบกลับ HTTP 200/202 พร้อมกับ `{"task_id": "xxxx", "status": "pending"}` **ทันที**
 
 ### Task 2: เชื่อมต่อ Message Queue (RabbitMQ)
 **คำอธิบาย:** เอาข้อมูลที่รับมา ไปโยนใส่คิวงานแบบเบื้องหลัง
-1. [ ] สร้างไฟล์ `mq_publisher.py`
-2. [ ] เขียนฟังก์ชัน `publish_task(task_id, text)` โดยใช้ไลบรารี **aio-pika** (เพื่อให้ทำงานแบบ Async ได้)
-3. [ ] กลับไปที่ `main.py` นำฟังก์ชันนี้ไปเรียกใช้ภายใน `POST /translate/` (ต้องใช้ `await` ตอน Publish งานลงคิว)
-4. [ ] **Definition of Done:** ยิง API แล้ว ข้อมูล `task_id` และ `text` ปรากฏในคิวของ RabbitMQ
+1. [x] สร้างไฟล์ `mq_publisher.py`
+2. [x] เขียนฟังก์ชัน `publish_task(task_id, text)` โดยใช้ไลบรารี **aio-pika** (เพื่อให้ทำงานแบบ Async ได้)
+3. [x] กลับไปที่ `main.py` นำฟังก์ชันนี้ไปเรียกใช้ภายใน `POST /translate/` (ต้องใช้ `await` ตอน Publish งานลงคิว)
+4. [x] **Definition of Done:** ยิง API แล้ว ข้อมูล `task_id` และ `text` ปรากฏในคิวของ RabbitMQ
 
 ### Task 3: สร้าง Docker สำหรับรันทดสอบ (Dockerization)
 **คำอธิบาย:** แพคโปรเจกต์ลง Docker ให้ทำงานร่วมกับ RabbitMQ ได้
-1. [ ] สร้างไฟล์ `Dockerfile` สำหรับรัน Python/FastAPI (ใช้ `uvicorn`)
-2. [ ] สร้างไฟล์ `docker-compose.yml` ให้มี 2 Services:
+1. [x] สร้างไฟล์ `Dockerfile` สำหรับรัน Python/FastAPI (ใช้ `uvicorn`)
+2. [x] สร้างไฟล์ `docker-compose.yml` ให้มี 2 Services:
    - `api`: โค้ด FastAPI ของเรา
    - `rabbitmq`: อิมเมจ `rabbitmq:3-management`
-3. [ ] **Definition of Done:** สามารถรัน `docker compose up -d` แล้วทั้ง API และ RabbitMQ ทำงานได้โดยไม่ Error
+3. [x] **Definition of Done:** สามารถรัน `docker compose up -d` แล้วทั้ง API และ RabbitMQ ทำงานได้โดยไม่ Error
 
 ---
 

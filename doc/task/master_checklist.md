@@ -7,9 +7,9 @@
 ---
 
 ## 🟢 Phase 1: API Gateway & Message Queue (Hermes Core)
-- [ ] **FR-01:** ระบบมี API (FastAPI) รองรับ Request ด้วยความเร็วสูง (Asynchronous)
-- [ ] **FR-01:** API สามารถสร้าง `Task_ID` (UUID) และคืนค่าให้ Client ได้ทันทีโดยไม่บล็อคระบบ
-- [ ] **FR-01:** ระบบโยนข้อมูลที่รับมา (Payload + Task_ID) ลง Message Queue (RabbitMQ) ได้สำเร็จ
+- [x] **FR-01:** ระบบมี API (FastAPI) รองรับ Request ด้วยความเร็วสูง (Asynchronous)
+- [x] **FR-01:** API สามารถสร้าง `Task_ID` (UUID) และคืนค่าให้ Client ได้ทันทีโดยไม่บล็อคระบบ
+- [x] **FR-01:** ระบบโยนข้อมูลที่รับมา (Payload + Task_ID) ลง Message Queue (RabbitMQ) ได้สำเร็จ
 
 ## 🔵 Phase 2: Knowledge Base & Rule Management
 - [ ] **FR-02:** มีฐานข้อมูล PostgreSQL สำหรับเก็บข้อมูลกฎการแปล 
