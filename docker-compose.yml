@@ -10,13 +10,48 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: hermes
+      POSTGRES_PASSWORD: hermes_secret
+      POSTGRES_DB: hermes_translate
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hermes -d hermes_translate"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   api:
     build: .
     ports:
       - "8000:8000"
     environment:
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq/
+      - RABBITMQ_URL=amqp://guest:***@rabbitmq/
       - QUEUE_NAME=translation_tasks
+      - DATABASE_URL=postgresql+asyncpg://hermes:hermes_secret@postgres/hermes_translate
     depends_on:
       rabbitmq:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: python -m app.worker
+    environment:
+      - RABBITMQ_URL=amqp://guest:***@rabbitmq/
+      - QUEUE_NAME=translation_tasks
+      - DATABASE_URL=postgresql+asyncpg://hermes:hermes_secret@postgres/hermes_translate
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

@@ -3,3 +3,6 @@ uvicorn
 pydantic
 aio-pika
 python-dotenv
+asyncpg
+sqlalchemy
+pyahocorasick
