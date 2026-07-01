@@ -47,7 +47,7 @@ app.add_middleware(
 
 app.include_router(admin_router)
 app.include_router(hermes_router)
-# Serve static files (tester.html, monitor.html)
+# Serve static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 

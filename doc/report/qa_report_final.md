@@ -72,8 +72,6 @@
 | 9 | `GET /status/{task_id}` — not found -> 404 | PASS |
 | 10 | `docker compose up` — 4 services healthy | PASS |
 | 11 | `docker compose down` — clean shutdown | PASS |
-| 12 | Browser UI: tester.html validation + translate | PASS |
-| 13 | Browser UI: monitor.html 6-card dashboard | PASS |
 | 14 | CORS: Allow-Origin * + Allow-Methods | PASS |
 | 15 | Concurrent 5 requests | PASS (all 202) |
 | 16 | Large payload (13KB text) | PASS (202) |

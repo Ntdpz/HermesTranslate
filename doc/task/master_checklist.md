@@ -31,9 +31,11 @@
 - [x] **TR-02 (Docker):** ระบบทั้งหมดสามารถรันร่วมกันได้สมบูรณ์ผ่านคำสั่ง `docker-compose up`
 - [x] **NFR-01 (Reliability):** เมื่อ RabbitMQ หรือ API ดับไประยะสั้นๆ ระบบสามารถกลับมาทำงานต่อได้โดยที่ข้อมูลในคิวไม่สูญหาย
 
-## 🟡 Phase Add-on: Web UI (Tester + Monitor)
-- [x] **UI-01 (Tester):** หน้าเว็บ tester.html สำหรับกรอกข้อความภาษาไทยและส่งแปลผ่าน API — แสดง Task ID + Status
-- [x] **UI-02 (Monitor):** หน้าเว็บ monitor.html สำหรับดูสถานะคิวงานแบบ Real-time (Polling ทุก 2 วินาที) — แสดง 6-card dashboard
+## 🟡 Phase Add-on: Web UI (Tester + Monitor) — Removed 2026-07-01
+> **หมายเหตุ:** `tester.html` และ `monitor.html` ถูกลบออกจากโปรเจคแล้ว Endpoint API ทั้งหมดยังคงทำงานตามปกติ
+
+- [x] ~~**UI-01 (Tester):** หน้าเว็บ tester.html สำหรับกรอกข้อความภาษาไทยและส่งแปลผ่าน API — แสดง Task ID + Status~~ *(ไฟล์ tester.html ถูกลบ — 2026-07-01)*
+- [x] ~~**UI-02 (Monitor):** หน้าเว็บ monitor.html สำหรับดูสถานะคิวงานแบบ Real-time (Polling ทุก 2 วินาที) — แสดง 6-card dashboard~~ *(ไฟล์ monitor.html ถูกลบ — 2026-07-01)*
 - [x] **UI-03 (CORS):** ตั้งค่า CORS Middleware ให้ Browser-based UI ยิง API ข้าม origin ได้
 - [x] **UI-04 (Static):** FastAPI serve static HTML files ผ่าน `/static/` mount
 - [x] **UI-05 (Queue API):** API endpoint `GET /queue/stats` สำหรับ query RabbitMQ queue statistics
@@ -52,4 +54,20 @@
 - [x] **MG-03 (Frontend):** สร้าง `static/hermes-manager.html` — SPA จัดการ 3 agents: start/stop dashboard, เปลี่ยน model, ดู/ติดตั้ง skills, แชทกับ agent
 - [x] **MG-04 (Integration):** Register router ใน `app/main.py` + ทดสอบ end-to-end (start/stop/status/config/chat ผ่าน API)
 
-**Status: All items complete (1 July 2026)**
+
+## 🟢 Phase: Translate UI (90s Pixel Art Full SPA)
+
+Plan + Task List: `doc/task/translate_ui_plan.md` | `doc/task/translate_ui_task.md`
+
+- [x] **UI-12 (Translate Page):** หนา translate.html — Auto-Translation 1-click (Main -> Translate -> Validate) ผาน `/agent/chat`
+- [x] **UI-13 (Progress):** Step indicator 3 ขน + progress bar + timing (ms) + loading spinner
+- [x] **UI-14 (Debug Panel):** Terminal-style debug panel — raw output, meta, timing per agent
+- [x] **UI-15 (Professional UI):** Clean professional design — system fonts, #1a73e8 accent, white cards, rounded corners — match agents.html
+- [x] **UI-16 (Loading Indicator):** CSS spinner animation ระหวางเรยก agent
+- [x] **UI-17 (Sound):** Web Audio API — start beep, progress tick, success fanfare, error buzz + toggle
+- [x] **UI-18 (History):** localStorage history 20 รายการ — save/restore/clear
+- [x] **UI-19 (Mobile):** Responsive design — @media 768px, touch-friendly 44px min, textarea auto-resize
+- [x] **UI-20 (Offline):** Service Worker `sw.js` — cache-first strategy, offline indicator
+
+**Status: V2 complete — professional clean UI (1 July 2026)**
+

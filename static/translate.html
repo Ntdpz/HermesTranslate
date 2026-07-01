@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HermesTranslate — Auto Translation</title>
+<style>
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f0f2f5;
+  display: flex; justify-content: center; align-items: flex-start;
+  min-height: 100vh; color: #333; padding: 24px;
+}
+
+/* ── Container ── */
+.container {
+  width: 100%; max-width: 800px;
+}
+
+/* ── Card ── */
+.card {
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  padding: 24px 32px 32px; overflow: hidden;
+}
+
+/* ── Header ── */
+.header { margin-bottom: 20px; }
+.title {
+  font-size: 1.4rem; font-weight: 700; color: #1a73e8;
+  margin-bottom: 4px;
+}
+.subtitle { font-size: 0.85rem; color: #666; margin-bottom: 4px; }
+.hint-row { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
+.hint { font-size: 0.75rem; color: #999; }
+
+/* ── Sections ── */
+section { margin-bottom: 20px; }
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.section-label { font-size: 0.85rem; font-weight: 600; color: #555; }
+
+/* ── Textarea ── */
+textarea {
+  width: 100%; padding: 10px 12px; border: 1px solid #d0d5dd;
+  border-radius: 8px; font-size: 0.9rem; resize: vertical;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  transition: border-color 0.2s; min-height: 80px; color: #333;
+}
+textarea:focus { outline: none; border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,0.15); }
+textarea::placeholder { color: #999; }
+
+/* ── Buttons ── */
+.btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+button {
+  padding: 10px 16px; border: none; border-radius: 8px;
+  font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  transition: background 0.2s, opacity 0.2s; white-space: nowrap;
+}
+button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-primary { background: #1a73e8; color: #fff; }
+.btn-primary:hover:not(:disabled) { background: #1557b0; }
+
+.btn-secondary { background: #e8eaed; color: #333; }
+.btn-secondary:hover:not(:disabled) { background: #d2d5d9; }
+
+.btn-mini {
+  font-size: 0.75rem; padding: 4px 10px;
+  background: #e8eaed; color: #555;
+}
+.btn-mini:hover { background: #d2d5d9; }
+
+.btn-sound {
+  font-size: 0.75rem; padding: 4px 10px;
+  background: transparent; color: #999; border: 1px solid #d0d5dd;
+  border-radius: 6px;
+}
+.btn-sound:hover { color: #1a73e8; border-color: #1a73e8; }
+.btn-sound.muted { color: #ccc; text-decoration: line-through; }
+
+/* ── Error Message ── */
+.error-msg {
+  display: none; margin-top: 10px; padding: 10px 14px; border-radius: 8px;
+  color: #d93025; background: #fce8e6; border: 1px solid #f5c6cb;
+  font-size: 0.85rem;
+}
+.error-msg.show { display: block; }
+
+/* ── Progress Section ── */
+.progress-steps {
+  display: flex; align-items: center; gap: 0; margin-bottom: 10px;
+}
+.step {
+  display: flex; align-items: center; gap: 8px;
+  flex: 1; padding: 8px 10px;
+  border: 1px solid #e1e4e8; border-radius: 8px;
+  background: #fafbfc; font-size: 0.8rem;
+  transition: all 0.2s;
+}
+.step .step-icon {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 700;
+  background: #e8eaed; color: #888;
+  flex-shrink: 0;
+}
+.step .step-body { display: flex; flex-direction: column; min-width: 0; }
+.step .step-label { font-weight: 600; color: #555; font-size: 0.75rem; }
+.step .step-time { font-size: 0.7rem; color: #999; }
+.step-connector { width: 16px; height: 2px; background: #e1e4e8; flex-shrink: 0; }
+
+.step.active { border-color: #1a73e8; background: #e8f0fe; }
+.step.active .step-icon { background: #1a73e8; color: #fff; }
+.step.active .step-label { color: #1a73e8; }
+
+.step.done { border-color: #34a853; background: #e6f4ea; }
+.step.done .step-icon { background: #34a853; color: #fff; }
+.step.done .step-label { color: #34a853; }
+
+.step.error { border-color: #ea4335; background: #fce8e6; }
+.step.error .step-icon { background: #ea4335; color: #fff; }
+.step.error .step-label { color: #ea4335; }
+
+.step-connector.done { background: #34a853; }
+
+/* ── Progress Bar ── */
+.progress-bar-track {
+  width: 100%; height: 8px; border-radius: 4px;
+  background: #e8eaed; margin-bottom: 12px; overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%; width: 0%; border-radius: 4px;
+  background: #1a73e8;
+  transition: width 0.3s ease;
+}
+.progress-bar-fill.done { background: #34a853; }
+.progress-bar-fill.error { background: #ea4335; }
+
+/* ── Loading indicator ── */
+.loading-indicator {
+  display: none; align-items: center; gap: 8px;
+  font-size: 0.8rem; color: #1a73e8; margin-top: 4px;
+}
+.loading-indicator.active { display: flex; }
+.loading-spinner {
+  width: 16px; height: 16px; border: 2px solid #e1e4e8;
+  border-top-color: #1a73e8; border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Result Box ── */
+.result-box {
+  border: 1px solid #e1e4e8; border-radius: 8px;
+  background: #fafbfc; padding: 14px 16px;
+}
+.result-row {
+  display: flex; gap: 10px; margin-bottom: 6px;
+  font-size: 0.85rem; align-items: baseline;
+}
+.result-label { color: #888; font-weight: 500; white-space: nowrap; min-width: 95px; }
+.result-value { color: #333; word-break: break-word; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; }
+.result-value.pass { color: #34a853; font-weight: 600; }
+.result-value.fail { color: #ea4335; font-weight: 600; }
+
+/* ── Debug Panel ── */
+.debug-output {
+  background: #0d1117; border: 1px solid #30363d; border-radius: 8px;
+  padding: 14px; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.8rem; color: #8b949e; min-height: 50px; max-height: 300px;
+  overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+  line-height: 1.5;
+}
+.debug-output .debug-agent { color: #58a6ff; }
+.debug-output .debug-success { color: #7ee787; }
+.debug-output .debug-error { color: #f85149; }
+.debug-output .debug-info { color: #8b949e; }
+
+/* ── History ── */
+.history-list { max-height: 250px; overflow-y: auto; }
+.history-empty { color: #999; padding: 12px; text-align: center; font-size: 0.85rem; }
+
+.history-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; margin-bottom: 4px; border-radius: 6px;
+  border: 1px solid #e1e4e8; cursor: pointer; font-size: 0.8rem;
+  transition: background 0.15s;
+}
+.history-item:hover { background: #f0f7ff; border-color: #1a73e8; }
+.hi-idx { color: #999; min-width: 28px; font-weight: 500; }
+.hi-preview { color: #333; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; }
+.hi-status { font-size: 0.7rem; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+.hi-status.pass { color: #1e7e34; background: #e6f4ea; }
+.hi-status.fail { color: #c5221f; background: #fce8e6; }
+
+/* ── Offline Banner ── */
+body.offline::before {
+  content: 'OFFLINE MODE — API calls will fail';
+  display: block; text-align: center; background: #ea4335; color: #fff;
+  font-size: 0.8rem; font-weight: 500; padding: 6px;
+  position: sticky; top: 0; z-index: 100;
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  body { padding: 12px; }
+  .card { padding: 16px; }
+  .title { font-size: 1.2rem; }
+  .btn-row button { flex: 1; min-width: 0; }
+  button { min-height: 44px; }
+  .step { flex-direction: column; gap: 4px; padding: 8px 4px; text-align: center; }
+  .step .step-body { text-align: center; }
+  .result-label { min-width: 70px; }
+}
+</style>
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<main class="container">
+<div class="card">
+
+  <!-- ── Header ── -->
+  <div class="header">
+    <h1 class="title">Hermes Auto-Translation</h1>
+    <p class="subtitle">One-click translation: Main Agent -> Translate Agent -> Validate Agent</p>
+    <div class="hint-row">
+      <span class="hint">Ctrl+Enter to translate  |  Esc to clear</span>
+      <button class="btn-sound" id="btnSoundToggle" title="Toggle sound effects">Sound On</button>
+    </div>
+  </div>
+
+  <!-- ── Input Area ── -->
+  <section>
+    <div class="section-header"><span class="section-label">Input</span></div>
+    <textarea id="inputText" placeholder="Enter Thai text here..." rows="3"></textarea>
+    <div class="btn-row">
+      <button id="btnTranslate" class="btn-primary">Translate</button>
+      <button id="btnClear" class="btn-secondary">Clear</button>
+      <button id="btnCopy" class="btn-secondary" disabled>Copy Result</button>
+    </div>
+    <div class="loading-indicator" id="loadingIndicator">
+      <div class="loading-spinner"></div>
+      <span id="loadingText">Translating...</span>
+    </div>
+    <div id="errorMsg" class="error-msg"></div>
+  </section>
+
+  <!-- ── Progress ── -->
+  <section id="progressSection">
+    <div class="section-header"><span class="section-label">Progress</span></div>
+    <div class="progress-steps" id="progressSteps">
+      <div class="step" data-step="main">
+        <span class="step-icon">1</span>
+        <div class="step-body">
+          <span class="step-label">Main Agent</span>
+          <span class="step-time"></span>
+        </div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step" data-step="translate">
+        <span class="step-icon">2</span>
+        <div class="step-body">
+          <span class="step-label">Translate</span>
+          <span class="step-time"></span>
+        </div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step" data-step="validate">
+        <span class="step-icon">3</span>
+        <div class="step-body">
+          <span class="step-label">Validate</span>
+          <span class="step-time"></span>
+        </div>
+      </div>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+  </section>
+
+  <!-- ── Result ── -->
+  <section id="resultSection">
+    <div class="section-header"><span class="section-label">Result</span></div>
+    <div class="result-box">
+      <div class="result-row">
+        <span class="result-label">Original:</span>
+        <span class="result-value" id="resultOriginal">&mdash;</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Translated:</span>
+        <span class="result-value" id="resultTranslated">&mdash;</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Status:</span>
+        <span class="result-value" id="resultStatus">&mdash;</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Debug Panel ── -->
+  <section id="debugSection">
+    <div class="section-header">
+      <span class="section-label">Debug</span>
+      <button id="btnDebugToggle" class="btn-mini">Hide</button>
+    </div>
+    <pre id="debugOutput" class="debug-output">Waiting for translation...</pre>
+  </section>
+
+  <!-- ── History ── -->
+  <section id="historySection">
+    <div class="section-header">
+      <span class="section-label">History</span>
+      <button id="btnClearHistory" class="btn-mini">Clear</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="history-empty">No history yet</div>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<!-- Main Application Script -->
+<script>
+/* ── Config ── */
+var API_BASE = (window.location.protocol === 'file:' || window.location.origin === 'null')
+  ? 'http://localhost:8000'
+  : window.location.origin;
+
+var HISTORY_KEY = 'hermes-translate-history';
+var MAX_HISTORY = 20;
+var AGENTS = ['main', 'translate', 'validate'];
+var translationActive = false;
+var soundOn = true;
+
+/* ── DOM Refs ── */
+var inputText = document.getElementById('inputText');
+var btnTranslate = document.getElementById('btnTranslate');
+var btnClear = document.getElementById('btnClear');
+var btnCopy = document.getElementById('btnCopy');
+var errorMsg = document.getElementById('errorMsg');
+var progressBar = document.getElementById('progressBar');
+var loadingIndicator = document.getElementById('loadingIndicator');
+var loadingText = document.getElementById('loadingText');
+var debugOutput = document.getElementById('debugOutput');
+var btnDebugToggle = document.getElementById('btnDebugToggle');
+var resultOriginal = document.getElementById('resultOriginal');
+var resultTranslated = document.getElementById('resultTranslated');
+var resultStatus = document.getElementById('resultStatus');
+var historyList = document.getElementById('historyList');
+var btnClearHistory = document.getElementById('btnClearHistory');
+var btnSoundToggle = document.getElementById('btnSoundToggle');
+
+/* ── Sound (Web Audio API) ── */
+var audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+  if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+  return audioCtx;
+}
+function playBeep(freq, duration, type) {
+  if (!soundOn) return;
+  try {
+    var ctx = getAudioCtx();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = type || 'square';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.06, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + duration);
+  } catch(e) {}
+}
+function sfxStart()   { playBeep(440, 0.1, 'square'); }
+function sfxTick()    { playBeep(880, 0.05, 'square'); }
+function sfxSuccess() {
+  playBeep(523, 0.1, 'square');
+  setTimeout(function(){ playBeep(659, 0.1, 'square'); }, 100);
+  setTimeout(function(){ playBeep(784, 0.15, 'square'); }, 200);
+}
+function sfxError()   { playBeep(200, 0.2, 'sawtooth'); }
+
+/* ── Sound Toggle ── */
+btnSoundToggle.addEventListener('click', function() {
+  soundOn = !soundOn;
+  btnSoundToggle.textContent = soundOn ? 'Sound On' : 'Sound Off';
+  btnSoundToggle.classList.toggle('muted', !soundOn);
+  localStorage.setItem('hermes-sound', soundOn ? 'on' : 'off');
+});
+(function initSound() {
+  var saved = localStorage.getItem('hermes-sound');
+  if (saved === 'off') {
+    soundOn = false;
+    btnSoundToggle.textContent = 'Sound Off';
+    btnSoundToggle.classList.add('muted');
+  }
+})();
+
+/* ── Textarea auto-resize ── */
+inputText.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+});
+
+/* ── Progress Helpers ── */
+function resetProgress() {
+  progressBar.style.width = '0%';
+  progressBar.className = 'progress-bar-fill';
+  var steps = document.querySelectorAll('.step');
+  steps.forEach(function(s) {
+    s.classList.remove('active', 'done', 'error');
+    s.querySelector('.step-time').textContent = '';
+  });
+  var connectors = document.querySelectorAll('.step-connector');
+  connectors.forEach(function(c) { c.classList.remove('done'); });
+  debugOutput.innerHTML = '';
+  loadingIndicator.classList.remove('active');
+}
+
+function setStepState(idx, state, ms) {
+  var step = document.querySelector('.step[data-step="' + AGENTS[idx] + '"]');
+  if (!step) return;
+  step.classList.remove('active', 'done', 'error');
+  step.classList.add(state);
+  if (ms !== undefined) { step.querySelector('.step-time').textContent = ms + 'ms'; }
+  if (idx > 0) {
+    var connectors = document.querySelectorAll('.step-connector');
+    if (connectors[idx - 1]) { connectors[idx - 1].classList.add('done'); }
+  }
+  var pct = state === 'done' ? ((idx + 1) / AGENTS.length * 100) : (idx / AGENTS.length * 100 + 12);
+  progressBar.style.width = Math.min(pct, ((idx + 1) / AGENTS.length * 100)) + '%';
+  if (state === 'error') { progressBar.classList.add('error'); }
+}
+
+/* ── Debug Panel ── */
+function debugLog(className, text) {
+  var span = document.createElement('span');
+  span.className = className;
+  span.textContent = text;
+  debugOutput.appendChild(span);
+  debugOutput.appendChild(document.createTextNode('\n'));
+  debugOutput.scrollTop = debugOutput.scrollHeight;
+}
+
+btnDebugToggle.addEventListener('click', function() {
+  var pre = document.getElementById('debugOutput');
+  if (pre.style.display === 'none') {
+    pre.style.display = '';
+    btnDebugToggle.textContent = 'Hide';
+  } else {
+    pre.style.display = 'none';
+    btnDebugToggle.textContent = 'Show';
+  }
+});
+
+/* ── History ── */
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
+  catch(e) { return []; }
+}
+function saveToHistory(original, translated, status, debug) {
+  var h = loadHistory();
+  h.unshift({ original: original, translated: translated, status: status, debug: debug, ts: Date.now() });
+  if (h.length > MAX_HISTORY) { h = h.slice(0, MAX_HISTORY); }
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); } catch(e) {}
+  renderHistory();
+}
+function renderHistory() {
+  var h = loadHistory();
+  if (!h.length) { historyList.innerHTML = '<div class="history-empty">No history yet</div>'; return; }
+  var html = '';
+  h.forEach(function(item, i) {
+    var preview = item.original.length > 40 ? item.original.slice(0, 40) + '...' : item.original;
+    var statusClass = item.status === 'PASS' ? 'pass' : 'fail';
+    html += '<div class="history-item" data-idx="' + i + '">' +
+      '<span class="hi-idx">#' + (i + 1) + '</span>' +
+      '<span class="hi-preview">' + escHtml(preview) + '</span>' +
+      '<span class="hi-status ' + statusClass + '">' + item.status + '</span>' +
+      '</div>';
+  });
+  historyList.innerHTML = html;
+  historyList.querySelectorAll('.history-item').forEach(function(el) {
+    el.addEventListener('click', function() {
+      restoreFromHistory(parseInt(this.getAttribute('data-idx')));
+    });
+  });
+}
+function restoreFromHistory(idx) {
+  var h = loadHistory();
+  if (!h[idx]) return;
+  var item = h[idx];
+  inputText.value = item.original;
+  resultOriginal.textContent = item.original;
+  resultTranslated.textContent = item.translated;
+  resultStatus.textContent = item.status;
+  resultStatus.className = 'result-value ' + (item.status === 'PASS' ? 'pass' : 'fail');
+  btnCopy.disabled = false;
+}
+function clearHistory() {
+  if (confirm('Clear all translation history?')) {
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+  }
+}
+btnClearHistory.addEventListener('click', clearHistory);
+
+/* ── Helpers ── */
+function escHtml(s) {
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+function showError(msg) {
+  errorMsg.textContent = msg;
+  errorMsg.classList.add('show');
+}
+function hideError() {
+  errorMsg.classList.remove('show');
+}
+
+/* ── Core: Auto-Translation ── */
+async function autoTranslate() {
+  if (translationActive) return;
+  var text = inputText.value.trim();
+  if (!text) { showError('Please enter text to translate.'); return; }
+
+  hideError();
+  translationActive = true;
+  resetProgress();
+  btnTranslate.disabled = true;
+  btnTranslate.textContent = 'Translating...';
+  btnCopy.disabled = true;
+  resultOriginal.textContent = '\u2014';
+  resultTranslated.textContent = '\u2014';
+  resultStatus.textContent = '\u2014';
+  resultStatus.className = 'result-value';
+  loadingIndicator.classList.add('active');
+  loadingText.textContent = 'Calling Main Agent...';
+
+  sfxStart();
+
+  var debugInfo = { timings: [], metas: [] };
+  var contextMd = '';
+  var translated = '';
+
+  for (var i = 0; i < AGENTS.length; i++) {
+    var agent = AGENTS[i];
+    setStepState(i, 'active');
+    loadingText.textContent = 'Calling ' + (agent === 'main' ? 'Main' : agent === 'translate' ? 'Translate' : 'Validate') + ' Agent...';
+
+    var payload = { agent: agent, text: i === 0 ? text : (i === 1 ? contextMd : translated) };
+    debugLog('debug-agent', '$ ' + agent.padEnd(9) + ' | sending...');
+
+    var t0 = performance.now();
+    try {
+      var resp = await fetch(API_BASE + '/agent/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(30000)
+      });
+      if (!resp.ok) {
+        var errData = await resp.json().catch(function(){ return {}; });
+        throw new Error(errData.detail || 'HTTP ' + resp.status);
+      }
+      var data = await resp.json();
+      var elapsed = Math.round(performance.now() - t0);
+
+      debugInfo.timings.push(elapsed);
+      debugInfo.metas.push(data.meta || {});
+
+      var metaSummary = '';
+      if (agent === 'main') {
+        metaSummary = 'rules_matched: ' + (data.meta && data.meta.rules_matched != null ? data.meta.rules_matched : '?');
+      } else if (agent === 'translate') {
+        metaSummary = 'rules_applied: ' + (data.meta && data.meta.rules_applied != null ? data.meta.rules_applied : '?');
+      } else if (agent === 'validate') {
+        var vc = data.meta && data.meta.violations ? data.meta.violations.length : 0;
+        metaSummary = 'valid: ' + (data.meta && data.meta.valid) + ', violations: ' + vc;
+      }
+
+      debugLog('debug-success', '$ ' + agent.padEnd(9) + ' | ' + elapsed + 'ms | ' + metaSummary);
+      debugLog('debug-info', '  output: ' + data.output_text.slice(0, 500));
+
+      if (i === 0) { contextMd = data.output_text; }
+      else if (i === 1) { translated = data.output_text; }
+      else {
+        var violations = data.meta && data.meta.violations || [];
+        violations.forEach(function(v) { debugLog('debug-error', '  violation: ' + v.keyword); });
+      }
+
+      setStepState(i, 'done', elapsed);
+      sfxTick();
+
+    } catch (err) {
+      var elapsed = Math.round(performance.now() - t0);
+      debugLog('debug-error', '$ ' + agent.padEnd(9) + ' | ' + elapsed + 'ms | ERROR: ' + err.message);
+      setStepState(i, 'error', elapsed);
+      progressBar.classList.add('error');
+      sfxError();
+
+      for (var j = i + 1; j < AGENTS.length; j++) { setStepState(j, 'error'); }
+
+      showError('[' + (agent === 'main' ? 'Main' : agent === 'translate' ? 'Translate' : 'Validate') + ' Agent] ' + err.message);
+      loadingIndicator.classList.remove('active');
+      translationActive = false;
+      btnTranslate.disabled = false;
+      btnTranslate.textContent = 'Translate';
+      return;
+    }
+  }
+
+  // All 3 agents done
+  var valid = debugInfo.metas[2] && debugInfo.metas[2].valid;
+  var violationCount = debugInfo.metas[2] && debugInfo.metas[2].violations ? debugInfo.metas[2].violations.length : 0;
+  var statusText = valid ? 'PASS' : 'FAIL';
+
+  resultOriginal.textContent = text;
+  resultTranslated.textContent = translated;
+  resultStatus.textContent = statusText + ' (' + violationCount + ' violations)';
+  resultStatus.className = 'result-value ' + (valid ? 'pass' : 'fail');
+
+  progressBar.classList.add(valid ? 'done' : 'error');
+
+  if (valid) { sfxSuccess(); } else { sfxError(); }
+
+  saveToHistory(text, translated, statusText, debugInfo);
+  btnCopy.disabled = false;
+  loadingIndicator.classList.remove('active');
+  translationActive = false;
+  btnTranslate.disabled = false;
+  btnTranslate.textContent = 'Translate';
+}
+
+/* ── Button Handlers ── */
+btnTranslate.addEventListener('click', autoTranslate);
+
+btnClear.addEventListener('click', function() {
+  inputText.value = '';
+  resetProgress();
+  hideError();
+  resultOriginal.textContent = '\u2014';
+  resultTranslated.textContent = '\u2014';
+  resultStatus.textContent = '\u2014';
+  resultStatus.className = 'result-value';
+  btnCopy.disabled = true;
+  debugOutput.innerHTML = 'Waiting for translation...';
+  inputText.focus();
+});
+
+btnCopy.addEventListener('click', function() {
+  var text = resultTranslated.textContent;
+  if (!text || text === '\u2014') return;
+  navigator.clipboard.writeText(text).then(function() {
+    var orig = btnCopy.textContent;
+    btnCopy.textContent = 'Copied!';
+    setTimeout(function() { btnCopy.textContent = orig; }, 1500);
+  }).catch(function() {
+    showError('Cannot copy to clipboard');
+  });
+});
+
+/* ── Keyboard Shortcuts ── */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    autoTranslate();
+  }
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    inputText.value = '';
+    inputText.focus();
+    hideError();
+  }
+});
+
+/* ── Init ── */
+renderHistory();
+inputText.focus();
+</script>
+
+<!-- Service Worker -->
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
+window.addEventListener('online', function(){ document.body.classList.remove('offline'); });
+window.addEventListener('offline', function(){ document.body.classList.add('offline'); });
+if (!navigator.onLine) document.body.classList.add('offline');
+</script>
+
+<!-- Navigation inject -->
+<script>
+fetch('nav.html').then(function(r){return r.text()}).then(function(h){
+  document.getElementById('nav-placeholder').innerHTML = h;
+});
+</script>
+
+</body>
+</html>

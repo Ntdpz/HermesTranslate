@@ -1,7 +1,9 @@
 # 📖 Manual Test Guide — HermesTranslate UI (Tester + Monitor)
 
+> **DEPRECATED (2026-07-01):** `tester.html` และ `monitor.html` ถูกลบออกจากโปรเจคแล้ว Tests 1-8 และ 12 ไม่สามารถรันได้อีกต่อไป Tests 9-11, 13 ยังคง valid
+
 **ส่วนงาน:** Web UI — Translation Tester & Queue Monitor
-**วันที่:** 1 กรกฎาคม 2026
+**วันที่:** 1 กรกฎาคม 2026 (Updated: 1 กรกฎาคม 2026 — UI files removed)
 
 ---
 
