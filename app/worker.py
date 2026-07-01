@@ -31,6 +31,7 @@ async def process_message(message: aio_pika.IncomingMessage):
         async with async_session_factory() as session:
             existing = await session.get(TaskRecord, task_id)
             if existing:
+                # Already processed, cancelled, or duplicate delivery
                 return
             context_md = await build_context(task_id, text)
             record = TaskRecord(
@@ -43,7 +44,7 @@ async def process_message(message: aio_pika.IncomingMessage):
             await session.commit()
 
             for attempt in range(1, MAX_RETRIES + 2):
-                translated = translate(context_md)
+                translated = await translate(context_md)
                 valid = await validate(translated)
 
                 if valid:

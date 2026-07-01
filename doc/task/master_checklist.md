@@ -37,7 +37,13 @@
 - [x] **UI-03 (CORS):** ตั้งค่า CORS Middleware ให้ Browser-based UI ยิง API ข้าม origin ได้
 - [x] **UI-04 (Static):** FastAPI serve static HTML files ผ่าน `/static/` mount
 - [x] **UI-05 (Queue API):** API endpoint `GET /queue/stats` สำหรับ query RabbitMQ queue statistics
+- [x] **UI-06 (WS + Live Result):** หน้า tester แสดงผลแปล AI (original/translated) ผ่าน WebSocket real-time + fallback HTTP polling + progress bar
+- [x] **UI-07 (Cancel):** ปุ่มยกเลิก task ระหว่างแปล + API `POST /cancel/{task_id}`
+- [x] **UI-08 (History):** localStorage history 20 รายการ + API `GET /history` — คลิกเรียกดู/โหลดซ้ำรายการเก่าได้
 - [x] **BUG-001:** แก้ไข Admin CRUD ResponseValidationError — UUID/datetime type mismatch ใน `schemas.py:RuleResponse`
 - [x] **BUG-002:** แก้ไข Worker automaton ไม่โหลด rules — restart worker + `start_bg_refresh` initialization
+- [x] **UI-09 (Agent Console):** หน้าเว็บ agents.html สำหรับทดสอบ Agent ทั้ง 3 ตัว (Main/Translate/Validate) แบบ interactive console — 3 แท็บ + API `POST /agent/chat`
+- [x] **UI-10 (LLM Agents):** เปลี่ยน Agent ทั้ง 3 เป็น LLM-powered ผ่าน Hermes Agent CLI + สร้าง 3 skills (translate-main/worker/checker) + fallback rule-based อัตโนมัติเมื่อไม่มี Hermes
+- [x] **UI-11 (Teach):** ปุ่มสอน Agent ผ่าน UI + API `POST /agent/teach` — บันทึก feedback + สร้างกฎแปลใหม่ลง DB อัตโนมัติ
 
-**Status: 20/20 tests passed — Full Regression Complete (1 July 2026)**
+**Status: All items complete (1 July 2026)**

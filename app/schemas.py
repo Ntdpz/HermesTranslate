@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, field_serializer, field_validator
 
@@ -45,3 +45,44 @@ class RuleResponse(BaseModel):
 class RuleUpdate(BaseModel):
     keyword: str | None = None
     rule_text: str | None = None
+
+
+class TaskStatusResponse(BaseModel):
+    """Response payload for WebSocket and status polling"""
+    task_id: str
+    status: str
+    retry_count: int = 0
+    result: str | None = None
+    original_text: str | None = None
+
+
+class HistoryItem(BaseModel):
+    """Lightweight history record for localStorage / history API"""
+    task_id: str
+    status: str
+    original_text: str | None = None
+    result_text: str | None = None
+    created_at: str
+
+
+class AgentChatRequest(BaseModel):
+    """Request to chat directly with a specific agent (no queue)."""
+    agent: str  # "main", "translate", "validate"
+    text: str
+
+
+class AgentChatResponse(BaseModel):
+    """Response from agent chat — output + metadata."""
+    agent: str
+    input_text: str
+    output_text: str
+    meta: dict = {}
+
+
+class TeachRequest(BaseModel):
+    """Teaching feedback — user corrects an agent's output."""
+    agent: str  # "main", "translate", "validate"
+    original: str  # original input text
+    output: str  # what the agent produced
+    expected: str | None = None  # what it should have been
+    note: str | None = None  # free-text teaching note

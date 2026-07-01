@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes Agent Console</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f2f5;
+    display: flex; justify-content: center; align-items: flex-start;
+    min-height: 100vh; color: #333; padding: 24px;
+  }
+  .card {
+    background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    padding: 0; width: 100%; max-width: 800px; overflow: hidden;
+  }
+  .card-header { padding: 24px 32px 0; }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; color: #1a73e8; }
+  .sub { font-size: 0.85rem; color: #666; margin-bottom: 16px; }
+
+  .tab-bar {
+    display: flex; gap: 0; border-bottom: 2px solid #e1e4e8; padding: 0 32px;
+  }
+  .tab-btn {
+    padding: 10px 20px; border: none; background: none;
+    font-size: 0.9rem; font-weight: 500; color: #666; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab-btn:hover { color: #1a73e8; }
+  .tab-btn.active { color: #1a73e8; border-bottom-color: #1a73e8; }
+
+  .tab-content { display: none; padding: 20px 32px 24px; }
+  .tab-content.active { display: block; }
+
+  .terminal {
+    background: #0d1117; border-radius: 8px; padding: 16px;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.85rem; line-height: 1.5; color: #c9d1d9;
+    min-height: 200px; max-height: 400px; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-word;
+    margin-bottom: 12px; border: 1px solid #30363d;
+  }
+  .terminal .prompt { color: #58a6ff; }
+  .terminal .cmd { color: #c9d1d9; }
+  .terminal .output { color: #7ee787; margin-top: 4px; }
+  .terminal .meta-line { color: #8b949e; font-size: 0.8rem; margin-top: 2px; }
+  .terminal .error-line { color: #f85149; }
+  .terminal .welcome { color: #8b949e; font-style: italic; }
+
+  .msg-block { margin-bottom: 12px; position: relative; }
+  .msg-block .teach-btn {
+    display: none; position: absolute; top: 0; right: 0;
+    background: #21262d; color: #8b949e; border: 1px solid #30363d;
+    border-radius: 4px; padding: 2px 8px; font-size: 0.7rem; cursor: pointer;
+    font-family: inherit;
+  }
+  .msg-block:hover .teach-btn { display: inline-block; }
+  .msg-block .teach-btn:hover { color: #f0f6fc; border-color: #58a6ff; }
+
+  .input-row { display: flex; gap: 10px; align-items: flex-end; }
+  textarea {
+    flex: 1; padding: 10px 12px; border: 1px solid #d0d5dd;
+    border-radius: 8px; font-size: 0.9rem; resize: vertical;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    transition: border-color 0.2s; min-height: 60px;
+  }
+  textarea:focus { outline: none; border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,0.15); }
+
+  .btn-group { display: flex; flex-direction: column; gap: 6px; }
+  button {
+    padding: 10px 16px; border: none; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    transition: background 0.2s; white-space: nowrap;
+  }
+  .btn-primary { background: #1a73e8; color: #fff; }
+  .btn-primary:hover { background: #1557b0; }
+  .btn-primary:disabled { background: #a0c4f1; cursor: not-allowed; }
+  .btn-secondary { background: #e8eaed; color: #333; }
+  .btn-secondary:hover { background: #d2d5d9; }
+
+  .error-msg {
+    margin-top: 12px; padding: 10px 14px; border-radius: 8px;
+    color: #d93025; background: #fce8e6; border: 1px solid #f5c6cb;
+    display: none; font-size: 0.85rem;
+  }
+  .error-msg.show { display: block; }
+
+  /* Teach modal */
+  .modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: #fff; border-radius: 12px; padding: 24px; width: 90%; max-width: 440px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .modal-box h3 { font-size: 1.1rem; margin-bottom: 12px; }
+  .modal-box label { display: block; font-size: 0.8rem; color: #666; margin-bottom: 4px; margin-top: 10px; }
+  .modal-box input, .modal-box textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid #d0d5dd; border-radius: 6px;
+    font-size: 0.85rem; font-family: inherit;
+  }
+  .modal-box .modal-btns { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; }
+  .modal-box .btn-cancel { background: #e8eaed; color: #333; }
+  .modal-box .toast { font-size: 0.8rem; color: #34a853; margin-top: 8px; display: none; }
+  .modal-box .toast.show { display: block; }
+
+  .nav-hint { font-size: 0.75rem; color: #999; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-header">
+    <h1>Hermes Agent Console</h1>
+    <p class="sub">LLM-powered translation agents (Main / Translate / Validate) + teach</p>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('main')">Main Agent</button>
+    <button class="tab-btn" onclick="switchTab('translate')">Translate Agent</button>
+    <button class="tab-btn" onclick="switchTab('validate')">Validate Agent</button>
+  </div>
+
+  <!-- Main Agent Tab -->
+  <div id="tab-main" class="tab-content active">
+    <div id="term-main" class="terminal">
+      <span class="welcome">Main Agent ready. Type Thai text to build translation context.</span>
+    </div>
+    <div class="input-row">
+      <textarea id="input-main" placeholder="Enter Thai text... (Ctrl+Enter to send)"></textarea>
+      <div class="btn-group">
+        <button class="btn-primary" onclick="sendToAgent('main')">Send</button>
+        <button class="btn-secondary" onclick="sendToNext('main')">To Translate</button>
+      </div>
+    </div>
+    <div id="error-main" class="error-msg"></div>
+  </div>
+
+  <!-- Translate Agent Tab -->
+  <div id="tab-translate" class="tab-content">
+    <div id="term-translate" class="terminal">
+      <span class="welcome">Translate Agent ready. Paste context or use "To Translate" from Main Agent.</span>
+    </div>
+    <div class="input-row">
+      <textarea id="input-translate" placeholder="Paste context_md here... (Ctrl+Enter to send)"></textarea>
+      <div class="btn-group">
+        <button class="btn-primary" onclick="sendToAgent('translate')">Send</button>
+        <button class="btn-secondary" onclick="sendToNext('translate')">To Validate</button>
+      </div>
+    </div>
+    <div id="error-translate" class="error-msg"></div>
+  </div>
+
+  <!-- Validate Agent Tab -->
+  <div id="tab-validate" class="tab-content">
+    <div id="term-validate" class="terminal">
+      <span class="welcome">Validate Agent ready. Paste translated text to check quality.</span>
+    </div>
+    <div class="input-row">
+      <textarea id="input-validate" placeholder="Paste translated text here... (Ctrl+Enter to send)"></textarea>
+      <div class="btn-group">
+        <button class="btn-primary" onclick="sendToAgent('validate')">Send</button>
+      </div>
+    </div>
+    <div id="error-validate" class="error-msg"></div>
+  </div>
+</div>
+
+<!-- Teach Modal -->
+<div id="teachModal" class="modal-overlay">
+  <div class="modal-box">
+    <h3>Teach Agent</h3>
+    <label>Agent:</label>
+    <input type="text" id="teachAgent" readonly>
+    <label>Original input:</label>
+    <textarea id="teachOriginal" rows="2" readonly></textarea>
+    <label>Agent output:</label>
+    <textarea id="teachOutput" rows="2" readonly></textarea>
+    <label>Expected output (what should it have been?):</label>
+    <textarea id="teachExpected" rows="2" placeholder="Correct translation..."></textarea>
+    <label>Note (optional):</label>
+    <input type="text" id="teachNote" placeholder="Additional feedback...">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeTeachModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitTeach()">Save Teaching</button>
+    </div>
+    <div id="teachToast" class="toast">Teaching saved!</div>
+  </div>
+</div>
+
+<script>
+const API_BASE = (window.location.protocol === 'file:' || window.location.origin === 'null')
+  ? 'http://localhost:8000'
+  : window.location.origin;
+
+let currentTab = 'main';
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    const names = ['main', 'translate', 'validate'];
+    btn.classList.toggle('active', names[i] === tab);
+  });
+  document.querySelectorAll('.tab-content').forEach(el => {
+    el.classList.toggle('active', el.id === 'tab-' + tab);
+  });
+  const input = document.getElementById('input-' + tab);
+  if (input) input.focus();
+}
+
+async function sendToAgent(agent) {
+  const input = document.getElementById('input-' + agent);
+  const text = input.value.trim();
+  if (!text) { showError(agent, 'Please enter text.'); return; }
+
+  hideError(agent);
+  const term = document.getElementById('term-' + agent);
+  appendTerminal(term, '$ ' + text, 'cmd');
+
+  const linesBefore = term.querySelectorAll('.msg-block').length;
+
+  const btn = document.querySelector('#tab-' + agent + ' .btn-primary');
+  btn.disabled = true; btn.textContent = 'Calling Hermes...';
+
+  try {
+    const resp = await fetch(API_BASE + '/agent/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agent, text }),
+    });
+    if (!resp.ok) throw new Error((await resp.json().catch(()=>({})).detail || 'HTTP '+resp.status));
+    const data = await resp.json();
+
+    // Add output as a message block with teach button
+    const block = document.createElement('div');
+    block.className = 'msg-block';
+    block.innerHTML =
+      '<span class="output">' + escHtml(data.output_text) + '</span>' +
+      '<button class="teach-btn" onclick="openTeachModal(\'' + agent + '\',\'' +
+      escAttr(data.input_text) + '\',\'' + escAttr(data.output_text) + '\')">Teach</button>';
+    term.appendChild(block);
+
+    // Meta info
+    if (agent === 'main' && data.meta.rules_matched !== undefined) {
+      appendTerminal(term, '-- rules matched: ' + data.meta.rules_matched + ' | called: extract_rules()', 'meta-line');
+    } else if (agent === 'translate' && data.meta.rules_applied !== undefined) {
+      appendTerminal(term, '-- rules applied: ' + data.meta.rules_applied + ' | called: translate() via Hermes LLM', 'meta-line');
+    } else if (agent === 'validate') {
+      const cls = data.meta.valid ? 'output' : 'error-line';
+      appendTerminal(term, '-- called: extract_rules() + Hermes LLM review', 'meta-line');
+      if (data.meta.violations && data.meta.violations.length) {
+        data.meta.violations.forEach(v => appendTerminal(term, '   violation: ' + v.keyword, 'error-line'));
+      }
+    }
+  } catch (err) {
+    appendTerminal(term, 'Error: ' + err.message, 'error-line');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send';
+  }
+  input.value = '';
+  term.scrollTop = term.scrollHeight;
+}
+
+function sendToNext(fromAgent) {
+  const term = document.getElementById('term-' + fromAgent);
+  const outputBlocks = term.querySelectorAll('.output');
+  if (!outputBlocks.length) { showError(fromAgent, 'No output to forward.'); return; }
+  const lastOutput = outputBlocks[outputBlocks.length - 1].textContent;
+  if (fromAgent === 'main') {
+    document.getElementById('input-translate').value = lastOutput;
+    switchTab('translate');
+  } else if (fromAgent === 'translate') {
+    document.getElementById('input-validate').value = lastOutput;
+    switchTab('validate');
+  }
+}
+
+// ── Teach modal ──────────────────────────────────────────────────
+
+function openTeachModal(agent, original, output) {
+  document.getElementById('teachAgent').value = agent;
+  document.getElementById('teachOriginal').value = original;
+  document.getElementById('teachOutput').value = output;
+  document.getElementById('teachExpected').value = '';
+  document.getElementById('teachNote').value = '';
+  document.getElementById('teachToast').classList.remove('show');
+  document.getElementById('teachModal').classList.add('show');
+}
+
+function closeTeachModal() {
+  document.getElementById('teachModal').classList.remove('show');
+}
+
+async function submitTeach() {
+  const agent = document.getElementById('teachAgent').value;
+  const original = document.getElementById('teachOriginal').value;
+  const output = document.getElementById('teachOutput').value;
+  const expected = document.getElementById('teachExpected').value.trim() || null;
+  const note = document.getElementById('teachNote').value.trim() || null;
+
+  try {
+    const resp = await fetch(API_BASE + '/agent/teach', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agent, original, output, expected, note }),
+    });
+    const data = await resp.json();
+    const toast = document.getElementById('teachToast');
+    toast.textContent = data.action === 'rule_created'
+      ? 'Rule created: ' + data.keyword + ' -> ' + data.rule_text
+      : 'Teaching noted (log #' + data.log_count + ')';
+    toast.classList.add('show');
+    setTimeout(() => { closeTeachModal(); }, 1500);
+  } catch (err) {
+    document.getElementById('teachToast').textContent = 'Error: ' + err.message;
+    document.getElementById('teachToast').classList.add('show');
+  }
+}
+
+// ── Terminal helpers ─────────────────────────────────────────────
+
+function appendTerminal(termEl, text, className) {
+  const line = document.createElement('div');
+  line.className = className || '';
+  line.textContent = text;
+  termEl.appendChild(line);
+}
+
+function showError(agent, msg) {
+  const el = document.getElementById('error-' + agent);
+  el.textContent = msg; el.classList.add('show');
+}
+function hideError(agent) {
+  document.getElementById('error-' + agent).classList.remove('show');
+}
+
+function escHtml(s) {
+  const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+}
+function escAttr(s) {
+  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault(); sendToAgent(currentTab);
+  }
+});
+
+document.getElementById('input-main').focus();
+</script>
+</body>
+</html>
