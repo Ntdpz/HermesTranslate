@@ -124,6 +124,8 @@
 </head>
 <body>
 
+<div id="nav-placeholder"></div>
+
 <div class="card">
   <h1>HermesTranslate</h1>
   <p class="sub">Translation Tester — ทดสอบแปลภาษาไทยเป็นอังกฤษ (AI + WebSocket)</p>
@@ -472,6 +474,12 @@ document.getElementById('textInput').addEventListener('keydown', function(e) {
 
 // Load history on startup
 renderHistory();
+</script>
+
+<script>
+fetch('nav.html').then(function(r){return r.text()}).then(function(h){
+  document.getElementById('nav-placeholder').innerHTML = h;
+});
 </script>
 
 </body>

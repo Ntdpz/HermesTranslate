@@ -1,0 +1,46 @@
+<style>
+  .global-nav {
+    width: calc(100% + 48px);
+    margin: -24px -24px 24px -24px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    height: 46px;
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .global-nav .brand {
+    font-weight: 700; font-size: 0.95rem; color: #1a73e8;
+    margin-right: 20px; text-decoration: none; white-space: nowrap;
+  }
+  .global-nav a.nav-link {
+    padding: 0 14px; height: 100%;
+    display: flex; align-items: center;
+    text-decoration: none; color: #555;
+    font-size: 0.82rem; font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .global-nav a.nav-link:hover { color: #1a73e8; background: #f6f8fa; }
+  .global-nav a.nav-link.active {
+    color: #1a73e8; border-bottom-color: #1a73e8;
+  }
+</style>
+<nav class="global-nav">
+  <a class="brand" href="hermes-manager.html">HermesTranslate</a>
+  <a class="nav-link" href="hermes-manager.html">Manager</a>
+  <a class="nav-link" href="agents.html">Agents</a>
+  <a class="nav-link" href="tester.html">Tester</a>
+  <a class="nav-link" href="monitor.html">Monitor</a>
+</nav>
+<script>
+  (function(){
+    var c = (window.location.pathname.split('/').pop()||'').toLowerCase();
+    document.querySelectorAll('.global-nav .nav-link').forEach(function(a){
+      if ((a.getAttribute('href')||'').toLowerCase()===c) a.classList.add('active');
+    });
+  })();
+</script>

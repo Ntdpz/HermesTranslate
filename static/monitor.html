@@ -58,6 +58,8 @@
 </head>
 <body>
 
+<div id="nav-placeholder"></div>
+
 <div class="header">
   <h1>HermesTranslate Queue Monitor</h1>
   <div>
@@ -168,5 +170,10 @@ fetchStats();
 setInterval(fetchStats, POLL_INTERVAL);
 </script>
 
+<script>
+fetch('nav.html').then(function(r){return r.text()}).then(function(h){
+  document.getElementById('nav-placeholder').innerHTML = h;
+});
+</script>
 </body>
 </html>

@@ -94,6 +94,7 @@
 </style>
 </head>
 <body>
+<div id="nav-placeholder"></div>
 <div class="container">
 
   <h1>Hermes Agent Manager</h1>
@@ -332,6 +333,11 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.ctrlKey && document.getElementById('chat-modal').classList.contains('active')) {
     sendChat();
   }
+});
+</script>
+<script>
+fetch('nav.html').then(function(r){return r.text()}).then(function(h){
+  document.getElementById('nav-placeholder').innerHTML = h;
 });
 </script>
 </body>

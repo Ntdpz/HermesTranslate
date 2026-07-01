@@ -4,6 +4,10 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+RUN python -c "\
+import fastapi, uvicorn, pydantic, aio_pika, dotenv, asyncpg; \
+import sqlalchemy, ahocorasick, alembic, httpx, websockets, yaml; \
+print('All imports OK')"
 
 COPY app/ ./app/
 COPY static/ ./static/

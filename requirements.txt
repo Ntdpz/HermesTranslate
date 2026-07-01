@@ -9,3 +9,4 @@ pyahocorasick
 alembic
 httpx
 websockets
+pyyaml

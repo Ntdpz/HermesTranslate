@@ -114,6 +114,8 @@
 </head>
 <body>
 
+<div id="nav-placeholder"></div>
+
 <div class="card">
   <div class="card-header">
     <h1>Hermes Agent Console</h1>
@@ -351,6 +353,11 @@ document.addEventListener('keydown', function(e) {
 });
 
 document.getElementById('input-main').focus();
+</script>
+<script>
+fetch('nav.html').then(function(r){return r.text()}).then(function(h){
+  document.getElementById('nav-placeholder').innerHTML = h;
+});
 </script>
 </body>
 </html>
