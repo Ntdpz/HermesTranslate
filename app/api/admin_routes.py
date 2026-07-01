@@ -61,3 +61,21 @@ async def update_rule(
     await db.refresh(db_rule)
     await reload_rules()
     return db_rule
+
+
+@router.delete("/{rule_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_rule(rule_id: str, db: AsyncSession = Depends(get_db)):
+    try:
+        rule_uuid = uuid.UUID(rule_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid rule_id format"
+        )
+    db_rule = await db.get(TranslationRule, rule_uuid)
+    if not db_rule:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Rule not found"
+        )
+    await db.delete(db_rule)
+    await db.commit()
+    await reload_rules()

@@ -92,8 +92,15 @@ alembic upgrade head                           # PASS - สร้างใหม
 
 ---
 
+## Post-QA Fix
+
+| # | Issue | Resolution |
+|---|-------|------------|
+| 1 | DELETE endpoint missing from `admin_routes.py` — report claimed 4 CRUD endpoints but only 3 existed | Added `DELETE /{rule_id}` (line 66-81) — returns 204 No Content, reloads rule cache |
+
 ## Notes
 
 - Alembic ใช้ async engine (`create_async_engine`) เพื่อให้สอดคล้องกับ SQLAlchemy async stack ของโปรเจกต์
 - DATABASE_URL ใน `alembic.ini` ตั้งค่า default เป็น `localhost` สำหรับ development — production ควร override ด้วย environment variable
+- `admin_routes.py` มี 4 endpoints: POST (create), GET (list), PUT (update), DELETE (delete) — CRUD ครบถ้วน
 - พร้อมดำเนินการ Phase 4: Integration & Full Deployment

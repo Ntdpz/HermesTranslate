@@ -23,20 +23,20 @@ hermes_project/
 
 ### Task 1: สร้าง API สำหรับตรวจสอบสถานะ (Polling Endpoint)
 **คำอธิบาย:** ระบบ Asynchronous ต้องการช่องทางให้ Client กลับมาเช็คผลลัพธ์
-1. [ ] ในโฟลเดอร์ `app/` เปิดไฟล์ `main.py`
-2. [ ] สร้าง Endpoint `GET /status/{task_id}`
-3. [ ] ใน Endpoint นี้ ให้ทำการ Query ฐานข้อมูล PostgreSQL เพื่อเช็คสถานะของ `task_id` นั้น (เช่น Pending, Processing, Completed, Failed)
-4. [ ] **Definition of Done:** เอา `task_id` ที่ได้จาก Phase 1 มายิงเช็คผ่าน Postman แล้วระบบคืนค่าสถานะปัจจุบันและผลการแปลได้ถูกต้อง
+1. [x] ในโฟลเดอร์ `app/` เปิดไฟล์ `main.py`
+2. [x] สร้าง Endpoint `GET /status/{task_id}`
+3. [x] ใน Endpoint นี้ ให้ทำการ Query ฐานข้อมูล PostgreSQL เพื่อเช็คสถานะของ `task_id` นั้น (เช่น Pending, Processing, Completed, Failed)
+4. [x] **Definition of Done:** เอา `task_id` ที่ได้จาก Phase 1 มายิงเช็คผ่าน Postman แล้วระบบคืนค่าสถานะปัจจุบันและผลการแปลได้ถูกต้อง
 
 ### Task 2: ผูกระบบทั้งหมดลงใน Docker Compose ฉบับสมบูรณ์
 **คำอธิบาย:** ทำให้ระบบทุกส่วนรันเชื่อมโยงกันได้ในคำสั่งเดียว
-1. [ ] เปิดไฟล์ `docker-compose.yml` เขียน Service ให้ครบ 4 ตัว:
+1. [x] เปิดไฟล์ `docker-compose.yml` เขียน Service ให้ครบ 4 ตัว:
    - `postgres`: ฐานข้อมูล (ตั้งค่า Volumes/Healthcheck มาจาก Phase 2 แล้ว)
    - `rabbitmq`: คิวงาน
    - `api`: รัน FastAPI
    - `worker`: รันโค้ด Multi-Agent Consumer
-2. [ ] ตั้งค่า Network ภายใน Docker ให้ `api` และ `worker` มองเห็น `postgres` และ `rabbitmq`
-3. [ ] **Definition of Done:** รันคำสั่ง `docker compose up --build -d` แล้วคอนเทนเนอร์ทั้ง 4 ตัวรันขึ้นมาได้โดยไม่พัง (Exited)
+2. [x] ตั้งค่า Network ภายใน Docker ให้ `api` และ `worker` มองเห็น `postgres` และ `rabbitmq`
+3. [x] **Definition of Done:** รันคำสั่ง `docker compose up --build -d` แล้วคอนเทนเนอร์ทั้ง 4 ตัวรันขึ้นมาได้โดยไม่พัง (Exited)
 
 ---
 
