@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
 
 from app.api.admin_routes import router as admin_router
+from app.hermes_manager import router as hermes_router
 from app.config import QUEUE_NAME, RABBITMQ_MANAGEMENT_URL
 from app.db.database import async_session_factory, engine, get_db
 from app.db.models import Base, TaskRecord
@@ -45,6 +46,7 @@ app.add_middleware(
 )
 
 app.include_router(admin_router)
+app.include_router(hermes_router)
 # Serve static files (tester.html, monitor.html)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

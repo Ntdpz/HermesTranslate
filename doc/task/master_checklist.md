@@ -46,4 +46,10 @@
 - [x] **UI-10 (LLM Agents):** เปลี่ยน Agent ทั้ง 3 เป็น LLM-powered ผ่าน Hermes Agent CLI + สร้าง 3 skills (translate-main/worker/checker) + fallback rule-based อัตโนมัติเมื่อไม่มี Hermes
 - [x] **UI-11 (Teach):** ปุ่มสอน Agent ผ่าน UI + API `POST /agent/teach` — บันทึก feedback + สร้างกฎแปลใหม่ลง DB อัตโนมัติ
 
+## 🟤 Phase Add-on: Hermes Agent Manager Dashboard
+- [x] **MG-01 (Profiles):** สร้าง 3 Hermes profiles — `ht-main`, `ht-translate`, `ht-validate` — clone จาก default สำหรับจัดการแยก agent
+- [x] **MG-02 (API):** สร้าง `app/hermes_manager.py` — 10 endpoints จัดการ dashboard lifecycle (start/stop/status/open), config (read/write), skills (list/install), chat
+- [x] **MG-03 (Frontend):** สร้าง `static/hermes-manager.html` — SPA จัดการ 3 agents: start/stop dashboard, เปลี่ยน model, ดู/ติดตั้ง skills, แชทกับ agent
+- [x] **MG-04 (Integration):** Register router ใน `app/main.py` + ทดสอบ end-to-end (start/stop/status/config/chat ผ่าน API)
+
 **Status: All items complete (1 July 2026)**

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes Agent Manager</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh; color: #333; padding: 24px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  h1 { font-size: 1.4rem; color: #1a73e8; margin-bottom: 4px; }
+  .sub { font-size: 0.85rem; color: #666; margin-bottom: 20px; }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 800px) { .card-grid { grid-template-columns: 1fr; } }
+
+  .agent-card {
+    background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    padding: 20px; text-align: center;
+  }
+  .agent-card h3 { font-size: 1.1rem; margin-bottom: 6px; }
+  .agent-card .port { font-size: 0.8rem; color: #888; margin-bottom: 12px; }
+
+  .status-dot {
+    display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+    margin-right: 6px; vertical-align: middle;
+  }
+  .status-dot.running { background: #2ea043; box-shadow: 0 0 6px #2ea043; }
+  .status-dot.stopped { background: #f85149; }
+  .status-text { font-size: 0.85rem; vertical-align: middle; }
+
+  .btn-row { display: flex; gap: 6px; justify-content: center; margin: 12px 0; flex-wrap: wrap; }
+  button {
+    padding: 7px 14px; border: none; border-radius: 6px;
+    font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-start { background: #2ea043; color: #fff; }
+  .btn-start:hover:not(:disabled) { background: #238636; }
+  .btn-stop { background: #f85149; color: #fff; }
+  .btn-stop:hover:not(:disabled) { background: #da3633; }
+  .btn-open { background: #1a73e8; color: #fff; }
+  .btn-open:hover:not(:disabled) { background: #1557b0; }
+  .btn-outline {
+    background: #fff; color: #1a73e8; border: 1px solid #1a73e8;
+  }
+  .btn-outline:hover:not(:disabled) { background: #e8f0fe; }
+
+  .info-row { margin-top: 10px; font-size: 0.8rem; color: #555; text-align: left; }
+  .info-row label { font-weight: 600; color: #888; display: block; margin-top: 6px; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 100; justify-content: center; align-items: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: #fff; border-radius: 12px; padding: 24px; width: 90%; max-width: 500px;
+    max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .modal h3 { margin-bottom: 12px; color: #1a73e8; }
+  .modal .close { float: right; background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #888; }
+  .modal select, .modal input, .modal textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid #d0d5dd; border-radius: 6px;
+    font-size: 0.85rem; margin: 6px 0 12px; font-family: inherit;
+  }
+  .modal textarea { min-height: 80px; resize: vertical; }
+  .modal .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+
+  .chat-output {
+    background: #0d1117; border-radius: 8px; padding: 12px; color: #7ee787;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem; line-height: 1.5; min-height: 80px; max-height: 250px;
+    overflow-y: auto; white-space: pre-wrap; margin-top: 8px; border: 1px solid #30363d;
+  }
+
+  .skill-list { font-size: 0.82rem; margin-top: 8px; }
+  .skill-list span {
+    display: inline-block; background: #e8f0fe; color: #1a73e8;
+    padding: 2px 8px; border-radius: 4px; margin: 2px; font-size: 0.75rem;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Hermes Agent Manager</h1>
+  <p class="sub">Start/stop dashboards — change models — chat with agents — manage skills</p>
+
+  <div class="card-grid" id="agent-grid"></div>
+
+</div>
+
+<!-- Config Modal -->
+<div class="modal-overlay" id="config-modal">
+  <div class="modal">
+    <button class="close" onclick="closeModal('config-modal')">&times;</button>
+    <h3 id="config-title">Change Model</h3>
+    <label>Model</label>
+    <select id="config-model"></select>
+    <label>Provider</label>
+    <input type="text" id="config-provider" placeholder="deepseek">
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeModal('config-modal')">Cancel</button>
+      <button class="btn-primary" onclick="saveConfig()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Chat Modal -->
+<div class="modal-overlay" id="chat-modal">
+  <div class="modal">
+    <button class="close" onclick="closeModal('chat-modal')">&times;</button>
+    <h3 id="chat-title">Chat</h3>
+    <textarea id="chat-input" placeholder="Type your message..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeModal('chat-modal')">Cancel</button>
+      <button class="btn-primary" onclick="sendChat()">Send</button>
+    </div>
+    <div class="chat-output" id="chat-output"></div>
+  </div>
+</div>
+
+<!-- Skills Modal -->
+<div class="modal-overlay" id="skills-modal">
+  <div class="modal">
+    <button class="close" onclick="closeModal('skills-modal')">&times;</button>
+    <h3 id="skills-title">Skills</h3>
+    <div id="skills-loading">Loading...</div>
+    <div class="skill-list" id="skill-list"></div>
+    <div style="margin-top:12px; display:flex; gap:8px;">
+      <input type="text" id="skill-install-input" placeholder="Skill ID to install..." style="flex:1;">
+      <button class="btn-outline" onclick="installSkill()">Install</button>
+    </div>
+    <div id="skill-msg" style="margin-top:6px; font-size:0.8rem;"></div>
+  </div>
+</div>
+
+<script>
+const API_BASE = (window.location.protocol === 'file:' || window.location.origin === 'null')
+  ? 'http://localhost:8000'
+  : window.location.origin;
+
+const AGENTS = ['main', 'translate', 'validate'];
+const AGENT_LABELS = { main: 'Main Agent', translate: 'Translate Agent', validate: 'Validate Agent' };
+const AGENT_ICONS = { main: '\u2699', translate: '\u21C4', validate: '\u2714' };
+
+let currentAgent = null;
+let modelsCache = null;
+
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const resp = await fetch(API_BASE + path, opts);
+  const data = await resp.json();
+  if (!resp.ok) throw new Error(data.detail || JSON.stringify(data));
+  return data;
+}
+
+function openModal(id, title, agent) {
+  document.getElementById(id).classList.add('active');
+  document.getElementById(id.replace('modal', 'title')).textContent = title + ' — ' + AGENT_LABELS[agent];
+  currentAgent = agent;
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+// ---- Dashboard Status ----
+async function refreshStatus() {
+  try {
+    const data = await api('GET', '/hermes/dashboard/status');
+    renderCards(data.agents);
+  } catch (e) {
+    console.error('Status refresh failed:', e);
+  }
+}
+
+function renderCards(agents) {
+  const grid = document.getElementById('agent-grid');
+  grid.innerHTML = AGENTS.map(agent => {
+    const info = agents[agent] || {};
+    const running = info.running;
+    const port = info.port;
+    const cls = running ? 'running' : 'stopped';
+    const txt = running ? 'Running' : 'Stopped';
+    return `
+      <div class="agent-card">
+        <h3>${AGENT_ICONS[agent]} ${AGENT_LABELS[agent]}</h3>
+        <div class="port">Port: ${port}</div>
+        <span class="status-dot ${cls}"></span>
+        <span class="status-text">${txt}</span>
+        <div class="btn-row">
+          <button class="btn-start" onclick="startAgent('${agent}')" ${running ? 'disabled' : ''}>Start</button>
+          <button class="btn-stop" onclick="stopAgent('${agent}')" ${!running ? 'disabled' : ''}>Stop</button>
+          <button class="btn-open" onclick="openDashboard('${agent}')">Open</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn-outline" onclick="showConfig('${agent}')">Change Model</button>
+          <button class="btn-outline" onclick="showSkills('${agent}')">Skills</button>
+          <button class="btn-outline" onclick="showChat('${agent}')">Chat</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ---- Actions ----
+async function startAgent(agent) {
+  try {
+    const data = await api('POST', '/hermes/dashboard/start/' + agent);
+    if (data.running) refreshStatus();
+  } catch (e) {
+    alert('Start failed: ' + e.message);
+  }
+}
+
+async function stopAgent(agent) {
+  if (!confirm('Stop ' + AGENT_LABELS[agent] + ' dashboard?')) return;
+  try {
+    await api('POST', '/hermes/dashboard/stop/' + agent);
+    refreshStatus();
+  } catch (e) {
+    alert('Stop failed: ' + e.message);
+  }
+}
+
+function openDashboard(agent) {
+  api('POST', '/hermes/dashboard/open/' + agent).then(data => {
+    window.open(data.url, '_blank');
+  });
+}
+
+// ---- Config ----
+async function showConfig(agent) {
+  openModal('config-modal', 'Change Model', agent);
+  try {
+    const config = await api('GET', '/hermes/config/' + agent);
+    document.getElementById('config-provider').value = config.provider || '';
+
+    if (!modelsCache) {
+      const m = await api('GET', '/hermes/config/' + agent + '/models');
+      modelsCache = m.models;
+    }
+    const sel = document.getElementById('config-model');
+    sel.innerHTML = modelsCache.map(m => `<option value="${m}" ${m === config.model ? 'selected' : ''}>${m}</option>`).join('');
+  } catch (e) {
+    alert('Failed to load config: ' + e.message);
+  }
+}
+
+async function saveConfig() {
+  const model = document.getElementById('config-model').value;
+  const provider = document.getElementById('config-provider').value;
+  try {
+    await api('POST', '/hermes/config/' + currentAgent, { model, provider: provider || null });
+    closeModal('config-modal');
+    alert('Config saved. Dashboard must be restarted to apply.');
+  } catch (e) {
+    alert('Save failed: ' + e.message);
+  }
+}
+
+// ---- Chat ----
+function showChat(agent) {
+  openModal('chat-modal', 'Chat', agent);
+  document.getElementById('chat-input').value = '';
+  document.getElementById('chat-output').textContent = '';
+}
+
+async function sendChat() {
+  const text = document.getElementById('chat-input').value.trim();
+  if (!text) return;
+  const output = document.getElementById('chat-output');
+  output.textContent = 'Thinking...';
+  try {
+    const data = await api('POST', '/hermes/chat/' + currentAgent, { text });
+    output.textContent = data.response;
+  } catch (e) {
+    output.textContent = 'ERROR: ' + e.message;
+  }
+}
+
+// ---- Skills ----
+async function showSkills(agent) {
+  openModal('skills-modal', 'Skills', agent);
+  document.getElementById('skill-list').innerHTML = '';
+  document.getElementById('skills-loading').textContent = 'Loading...';
+  document.getElementById('skill-msg').textContent = '';
+  try {
+    const data = await api('GET', '/hermes/skills/' + agent);
+    document.getElementById('skills-loading').textContent = '';
+    document.getElementById('skill-list').innerHTML = data.skills.map(s => `<span>${s}</span>`).join('');
+  } catch (e) {
+    document.getElementById('skills-loading').textContent = 'Failed: ' + e.message;
+  }
+}
+
+async function installSkill() {
+  const skillId = document.getElementById('skill-install-input').value.trim();
+  if (!skillId) return;
+  document.getElementById('skill-msg').textContent = 'Installing...';
+  try {
+    const data = await api('POST', '/hermes/skills/' + currentAgent + '/install', { skill_id: skillId });
+    document.getElementById('skill-msg').textContent = data.message;
+    showSkills(currentAgent);
+  } catch (e) {
+    document.getElementById('skill-msg').textContent = 'ERROR: ' + e.message;
+  }
+}
+
+// ---- Init ----
+refreshStatus();
+setInterval(refreshStatus, 4000);
+
+// Keyboard: close modal on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+  }
+  if (e.key === 'Enter' && e.ctrlKey && document.getElementById('chat-modal').classList.contains('active')) {
+    sendChat();
+  }
+});
+</script>
+</body>
+</html>
