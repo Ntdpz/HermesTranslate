@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HermesTranslate — Translation Tester</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f2f5;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh; color: #333;
+  }
+  .card {
+    background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    padding: 32px; width: 100%; max-width: 560px;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; color: #1a73e8; }
+  .sub { font-size: 0.85rem; color: #666; margin-bottom: 20px; }
+  textarea {
+    width: 100%; height: 120px; padding: 12px; border: 1px solid #d0d5dd;
+    border-radius: 8px; font-size: 1rem; resize: vertical; font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  textarea:focus { outline: none; border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,0.15); }
+  button {
+    width: 100%; padding: 12px; margin-top: 12px; border: none;
+    border-radius: 8px; background: #1a73e8; color: #fff;
+    font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s;
+  }
+  button:hover { background: #1557b0; }
+  button:disabled { background: #a0c4f1; cursor: not-allowed; }
+  .result {
+    margin-top: 20px; padding: 16px; border-radius: 8px;
+    background: #f6f8fa; border: 1px solid #e1e4e8; display: none;
+  }
+  .result.show { display: block; }
+  .result .label { font-size: 0.8rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+  .result .value { font-size: 1.1rem; font-weight: 600; margin-top: 4px; word-break: break-all; }
+  .error { color: #d93025; background: #fce8e6; border-color: #f5c6cb; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>HermesTranslate</h1>
+  <p class="sub">Translation Tester — ทดสอบแปลภาษาไทยเป็นอังกฤษ</p>
+
+  <textarea id="textInput" placeholder="ใส่ข้อความภาษาไทยที่ต้องการแปล..."></textarea>
+  <button id="submitBtn" onclick="submitTranslation()">แปลภาษา</button>
+
+  <div id="result" class="result">
+    <div class="label">Task ID</div>
+    <div class="value" id="taskId">—</div>
+    <div class="label" style="margin-top: 8px;">Status</div>
+    <div class="value" id="taskStatus">—</div>
+  </div>
+
+  <div id="error" class="result error"></div>
+</div>
+
+<script>
+const API_BASE = window.location.origin;
+
+async function submitTranslation() {
+  const textInput = document.getElementById('textInput');
+  const submitBtn = document.getElementById('submitBtn');
+  const resultDiv = document.getElementById('result');
+  const errorDiv = document.getElementById('error');
+  const text = textInput.value.trim();
+
+  if (!text) {
+    showError('กรุณากรอกข้อความก่อนกดแปล');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'กำลังส่ง...';
+  resultDiv.classList.remove('show');
+  errorDiv.classList.remove('show');
+
+  try {
+    const resp = await fetch(API_BASE + '/translate/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text }),
+    });
+    if (!resp.ok) {
+      const errData = await resp.json().catch(() => ({}));
+      throw new Error(errData.detail || 'Request failed (HTTP ' + resp.status + ')');
+    }
+    const data = await resp.json();
+    document.getElementById('taskId').textContent = data.task_id;
+    document.getElementById('taskStatus').textContent = data.status;
+    resultDiv.classList.add('show');
+  } catch (err) {
+    showError('เกิดข้อผิดพลาด: ' + err.message);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'แปลภาษา';
+  }
+}
+
+function showError(msg) {
+  const errorDiv = document.getElementById('error');
+  errorDiv.textContent = msg;
+  errorDiv.classList.add('show');
+}
+
+// Submit on Ctrl+Enter
+document.getElementById('textInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    submitTranslation();
+  }
+});
+</script>
+
+</body>
+</html>

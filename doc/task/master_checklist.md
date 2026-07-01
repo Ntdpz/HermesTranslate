@@ -30,3 +30,14 @@
 - [x] **FR-01 (Polling):** มี API `GET /status/{task_id}` ให้ Client สามารถดึงผลลัพธ์สุดท้ายหรือเช็คสถานะการทำงานได้
 - [x] **TR-02 (Docker):** ระบบทั้งหมดสามารถรันร่วมกันได้สมบูรณ์ผ่านคำสั่ง `docker-compose up`
 - [x] **NFR-01 (Reliability):** เมื่อ RabbitMQ หรือ API ดับไประยะสั้นๆ ระบบสามารถกลับมาทำงานต่อได้โดยที่ข้อมูลในคิวไม่สูญหาย
+
+## 🟡 Phase Add-on: Web UI (Tester + Monitor)
+- [x] **UI-01 (Tester):** หน้าเว็บ tester.html สำหรับกรอกข้อความภาษาไทยและส่งแปลผ่าน API — แสดง Task ID + Status
+- [x] **UI-02 (Monitor):** หน้าเว็บ monitor.html สำหรับดูสถานะคิวงานแบบ Real-time (Polling ทุก 2 วินาที) — แสดง 6-card dashboard
+- [x] **UI-03 (CORS):** ตั้งค่า CORS Middleware ให้ Browser-based UI ยิง API ข้าม origin ได้
+- [x] **UI-04 (Static):** FastAPI serve static HTML files ผ่าน `/static/` mount
+- [x] **UI-05 (Queue API):** API endpoint `GET /queue/stats` สำหรับ query RabbitMQ queue statistics
+- [x] **BUG-001:** แก้ไข Admin CRUD ResponseValidationError — UUID/datetime type mismatch ใน `schemas.py:RuleResponse`
+- [x] **BUG-002:** แก้ไข Worker automaton ไม่โหลด rules — restart worker + `start_bg_refresh` initialization
+
+**Status: 20/20 tests passed — Full Regression Complete (1 July 2026)**

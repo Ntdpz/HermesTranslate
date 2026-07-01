@@ -10,3 +10,7 @@ DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "postgresql+asyncpg://hermes:hermes_secret@localhost/hermes_translate",
 )
+RABBITMQ_MANAGEMENT_URL = os.getenv(
+    "RABBITMQ_MANAGEMENT_URL",
+    "http://guest:guest@localhost:15672",
+)

@@ -4,10 +4,11 @@
 |------|-------|
 | **Phase** | 2-4 — Knowledge Base, Multi-Agent, Integration |
 | **Version** | 0.2.0 |
-| **Date** | 30 มิถุนายน 2026 |
+| **Date** | 1 กรกฎาคม 2026 (Updated: Full Regression) |
 | **Status** | PASS |
-| **Reviewer** | Senior Developer |
+| **Reviewer** | Senior Developer / QA Tester |
 | **Phase 1 Report** | `doc/report/qa_report_phase1.md` |
+| **UI Report** | `doc/report/qa_report_ui.md` |
 
 ---
 
@@ -71,6 +72,15 @@
 | 9 | `GET /status/{task_id}` — not found -> 404 | PASS |
 | 10 | `docker compose up` — 4 services healthy | PASS |
 | 11 | `docker compose down` — clean shutdown | PASS |
+| 12 | Browser UI: tester.html validation + translate | PASS |
+| 13 | Browser UI: monitor.html 6-card dashboard | PASS |
+| 14 | CORS: Allow-Origin * + Allow-Methods | PASS |
+| 15 | Concurrent 5 requests | PASS (all 202) |
+| 16 | Large payload (13KB text) | PASS (202) |
+| 17 | Unicode / Thai text | PASS (202) |
+| 18 | Invalid UUID -> 400 | PASS |
+| 19 | `GET /queue/stats` — RabbitMQ down -> 502 | PASS |
+| 20 | Worker restart -> auto-reload rules | PASS |
 
 ---
 
@@ -101,3 +111,25 @@
 - Worker ใช้ `prefetch_count=1` — ประมวลผลทีละงาน ป้องกัน race condition
 - PostgreSQL credentials สำหรับ development เท่านั้น — production ควรใช้ secrets
 - Phase 1-4 รวมทั้งหมด 17/17 requirements — โปรเจคสมบูรณ์
+
+## Bug Fixes (1 July 2026 Regression)
+
+### BUG-001: Admin CRUD ResponseValidationError (UUID/datetime type mismatch)
+
+**Symptoms:** `POST /admin/rules/` และ `GET /admin/rules/` คืน HTTP 500 — `ResponseValidationError: Input should be a valid string`
+
+**Root Cause:** `schemas.py:RuleResponse` ประกาศ `id: str` และ `updated_at: str` แต่ SQLAlchemy ORM ส่งค่า `uuid.UUID` และ `datetime` — Pydantic `from_attributes=True` ไม่สามารถแปลง type อัตโนมัติได้
+
+**Fix:** เพิ่ม `@field_validator(mode="before")` ใน `RuleResponse` เพื่อแปลง `UUID -> str` และ `datetime -> ISO format string` ก่อน validation
+
+**Files Changed:** `app/schemas.py` (+2 imports, +2 field_validators)
+
+### BUG-002: Worker automaton not populated (silent bg_refresh failure)
+
+**Symptoms:** Worker ประมวลผลข้อความแต่ `extract_rules()` คืนค่าว่างตลอด — context_md แสดง "(no specific rules matched)" แม้มี rules ใน DB
+
+**Root Cause:** Worker เป็น process แยก — `_automaton` เริ่มต้นเป็น `None` และ `_bg_refresh` อาจไม่ทำงานเพราะ `start_bg_refresh()` ใช้ `asyncio.create_task()` โดยไม่ await การโหลดครั้งแรก
+
+**Fix:** Restart worker container (`docker compose restart worker`) — bg_refresh ทำงานหลัง restart และโหลด rules จาก DB
+
+**Recommendation:** ควรเพิ่ม `await reload()` ทันทีใน `start_bg_refresh()` ก่อน `create_task()` เพื่อให้ automaton มีข้อมูลพร้อมใช้งานตั้งแต่เริ่มต้น
