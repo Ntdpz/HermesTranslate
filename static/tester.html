@@ -61,7 +61,9 @@
 </div>
 
 <script>
-const API_BASE = window.location.origin;
+const API_BASE = (window.location.protocol === 'file:' || window.location.origin === 'null')
+  ? 'http://localhost:8000'
+  : window.location.origin;
 
 async function submitTranslation() {
   const textInput = document.getElementById('textInput');
