@@ -3,8 +3,8 @@
 from app.services.rule_engine import extract_rules
 
 
-def build_context(task_id: str, text: str) -> str:
-    rules = extract_rules(text)
+async def build_context(task_id: str, text: str) -> str:
+    rules = await extract_rules(text)
     if rules:
         rules_section = "\n## Matched Rules\n"
         for i, r in enumerate(rules, 1):

@@ -6,3 +6,4 @@ python-dotenv
 asyncpg
 sqlalchemy
 pyahocorasick
+alembic

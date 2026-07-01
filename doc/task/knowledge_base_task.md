@@ -36,7 +36,7 @@ hermes_project/
 1. [x] เพิ่มเซอร์วิส PostgreSQL ลงใน docker-compose.yml โดยต้องตั้งค่า volumes (เก็บข้อมูลถาวร) และ healthcheck (รอ DB พร้อม)
 2. [x] ในไฟล์ `models.py` สร้างตาราง `TranslationRule` (ต้องมีฟิลด์: `id`, `keyword`, `rule_text`, `updated_at`)
 3. [x] ในไฟล์ `database.py` เขียนฟังก์ชันเชื่อมต่อ DB แบบ Asynchronous (ใช้ `SQLAlchemy` + `asyncpg`)
-4. [ ] **Definition of Done:** สามารถใช้คำสั่งสร้างตาราง (Migration/Alembic) ลง PostgreSQL ได้สำเร็จ
+4. [x] **Definition of Done:** สามารถใช้คำสั่งสร้างตาราง (Migration/Alembic) ลง PostgreSQL ได้สำเร็จ
 
 ### Task 2: สร้าง API สำหรับ Administrator (CRUD)
 **คำอธิบาย:** ทำช่องทางให้ Admin สามารถเข้ามาแก้ไขกฎได้

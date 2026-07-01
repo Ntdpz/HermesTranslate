@@ -28,7 +28,8 @@ def _build_automaton(rules):
     a = ahocorasick.Automaton()
     for keyword, rule_text, updated_at, rule_id in rules:
         a.add_word(keyword, (keyword, rule_text, updated_at, rule_id))
-    a.make_automaton()
+    if rules:
+        a.make_automaton()
     return a
 
 
@@ -46,22 +47,24 @@ async def _get_automaton():
     return _automaton
 
 
-def extract_rules(text: str) -> list[dict]:
-    if _automaton is None:
-        return []
+async def extract_rules(text: str) -> list[dict]:
+    automaton = await _get_automaton()
     matches = []
     seen = set()
-    for _end, (keyword, rule_text, updated_at, rule_id) in _automaton.iter(text):
-        if rule_id not in seen:
-            seen.add(rule_id)
-            matches.append(
-                {
-                    "keyword": keyword,
-                    "rule_text": rule_text,
-                    "rule_id": rule_id,
-                    "updated_at": updated_at.isoformat(),
-                }
-            )
+    try:
+        for _end, (keyword, rule_text, updated_at, rule_id) in automaton.iter(text):
+            if rule_id not in seen:
+                seen.add(rule_id)
+                matches.append(
+                    {
+                        "keyword": keyword,
+                        "rule_text": rule_text,
+                        "rule_id": rule_id,
+                        "updated_at": updated_at.isoformat(),
+                    }
+                )
+    except AttributeError:
+        pass  # empty automaton with no rules loaded
     matches.sort(key=lambda m: m["updated_at"], reverse=True)
     return matches
 
@@ -71,11 +74,11 @@ _bg_task = None
 
 async def _bg_refresh(interval: int):
     while True:
-        await asyncio.sleep(interval)
         try:
             await reload()
         except Exception:
             pass
+        await asyncio.sleep(interval)
 
 
 async def start_bg_refresh(interval: int = 60):

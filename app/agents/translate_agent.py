@@ -23,7 +23,7 @@ def translate(context_md: str) -> str:
 
 def _extract_replacement(rule_text: str) -> str:
     """Extract target translation from rule like 'Translate X to Y'."""
-    match = re.search(r"to ['\"](.+?)['\"]", rule_text)
+    match = re.search(r"to\s+['\"]?(.+?)['\"]?$", rule_text)
     if match:
         return match.group(1)
     return ""

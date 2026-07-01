@@ -10,6 +10,7 @@ from app.db.models import TaskRecord
 from app.agents.main_agent import build_context
 from app.agents.translate_agent import translate
 from app.agents.validate_agent import validate
+from app.services.rule_engine import start_bg_refresh
 
 MAX_RETRIES = 3
 
@@ -26,7 +27,7 @@ async def process_message(message: aio_pika.IncomingMessage):
             existing = await session.get(TaskRecord, task_id)
             if existing:
                 return
-            context_md = build_context(task_id, text)
+            context_md = await build_context(task_id, text)
             record = TaskRecord(
                 task_id=task_id,
                 status="translating",
@@ -38,7 +39,7 @@ async def process_message(message: aio_pika.IncomingMessage):
 
             for attempt in range(1, MAX_RETRIES + 2):
                 translated = translate(context_md)
-                valid = validate(translated)
+                valid = await validate(translated)
 
                 if valid:
                     record.retry_count = attempt - 1
@@ -53,7 +54,7 @@ async def process_message(message: aio_pika.IncomingMessage):
                     record.status = "failed"
                     record.result_text = translated
 
-                context_md = build_context(task_id, text) + (
+                context_md = await build_context(task_id, text) + (
                     f"\n\n## Retry #{attempt}\n"
                     f"Previous attempt still contained rule violations. "
                     f"Ensure ALL matched rules are applied.\n"
@@ -63,6 +64,7 @@ async def process_message(message: aio_pika.IncomingMessage):
 
 
 async def main():
+    await start_bg_refresh(interval=60)
     connection = await aio_pika.connect_robust(RABBITMQ_URL)
     async with connection:
         channel = await connection.channel()

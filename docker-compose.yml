@@ -31,7 +31,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - RABBITMQ_URL=amqp://guest:***@rabbitmq/
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq/
       - QUEUE_NAME=translation_tasks
       - DATABASE_URL=postgresql+asyncpg://hermes:hermes_secret@postgres/hermes_translate
     depends_on:
@@ -44,7 +44,7 @@ services:
     build: .
     command: python -m app.worker
     environment:
-      - RABBITMQ_URL=amqp://guest:***@rabbitmq/
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq/
       - QUEUE_NAME=translation_tasks
       - DATABASE_URL=postgresql+asyncpg://hermes:hermes_secret@postgres/hermes_translate
     depends_on:
