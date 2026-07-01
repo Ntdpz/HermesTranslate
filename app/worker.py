@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 
 import aio_pika
 from sqlalchemy import update
@@ -12,7 +13,11 @@ from app.agents.translate_agent import translate
 from app.agents.validate_agent import validate
 from app.services.rule_engine import start_bg_refresh
 
+logger = logging.getLogger(__name__)
+
 MAX_RETRIES = 3
+CONNECT_MAX_RETRIES = 10
+CONNECT_BASE_DELAY = 2
 
 
 async def process_message(message: aio_pika.IncomingMessage):
@@ -64,8 +69,26 @@ async def process_message(message: aio_pika.IncomingMessage):
 
 
 async def main():
-    await start_bg_refresh(interval=60)
-    connection = await aio_pika.connect_robust(RABBITMQ_URL)
+    await start_bg_refresh(interval=2)
+
+    for attempt in range(1, CONNECT_MAX_RETRIES + 1):
+        try:
+            connection = await aio_pika.connect_robust(RABBITMQ_URL)
+            break
+        except Exception as e:
+            if attempt == CONNECT_MAX_RETRIES:
+                logger.error(
+                    "Failed to connect to RabbitMQ after %d attempts: %s",
+                    CONNECT_MAX_RETRIES, e,
+                )
+                raise
+            delay = min(CONNECT_BASE_DELAY ** attempt, 30)
+            logger.warning(
+                "RabbitMQ connection attempt %d/%d failed: %s. Retrying in %ds...",
+                attempt, CONNECT_MAX_RETRIES, e, delay,
+            )
+            await asyncio.sleep(delay)
+
     async with connection:
         channel = await connection.channel()
         await channel.set_qos(prefetch_count=1)

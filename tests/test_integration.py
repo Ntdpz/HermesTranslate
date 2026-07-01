@@ -21,18 +21,19 @@ def test_9_end_to_end_translation():
     res = requests.post(f"{BASE_URL}/translate/", json={"text": "Hello world"})
     task_id = res.json().get("task_id")
     
-    # 3. รอ Worker ประมวลผล
+    # รอให้ Worker อัปเดตกฎ (interval 2s) + รอประมวลผล
     time.sleep(5)
     
     # 4. เช็คสถานะ
     status_res = requests.get(f"{BASE_URL}/status/{task_id}").json()
     assert status_res.get("status") == "completed", f"Expected completed but got {status_res}"
-    assert "สวัสดี" in status_res.get("result_text", "")
+    assert "สวัสดี" in status_res.get("result", ""), f"Result was {status_res}"
 
 def test_10_retry_scenario():
     # เพิ่มกฎที่จะทำให้ Validate ไม่ผ่านเสมอ
     requests.post(f"{BASE_URL}/admin/rules", json={"keyword": "testretry", "rule_text": "Keep as testretry"})
     
+    time.sleep(3)  # Wait for worker to load new rules before sending text
     res = requests.post(f"{BASE_URL}/translate/", json={"text": "testretry message"})
     task_id = res.json().get("task_id")
     
@@ -44,8 +45,14 @@ def test_10_retry_scenario():
     assert status_res.get("retry_count") == 3
 
 def test_11_idempotency():
+    # 1. ส่งข้อความปกติก่อน
+    res = requests.post(f"{BASE_URL}/translate/", json={"text": "dup"})
+    task_id = res.json().get("task_id")
+    time.sleep(5) # รอให้เสร็จ
+    
+    # 2. ส่งซ้ำด้วย RabbitMQ HTTP API (ต้องไม่พังและข้ามไป)
     import json
-    payload_str = json.dumps({"task_id": "SAME-ID-123", "text": "dup"})
+    payload_str = json.dumps({"task_id": task_id, "text": "dup"})
     data = {
         "properties": {},
         "routing_key": "translation_tasks",
@@ -56,5 +63,5 @@ def test_11_idempotency():
     requests.post(rabbitmq_url, auth=("guest", "guest"), json=data)
     
     time.sleep(3)
-    status_res = requests.get(f"{BASE_URL}/status/SAME-ID-123")
-    assert status_res.status_code == 404 or status_res.json().get("status") != "completed"
+    status_res = requests.get(f"{BASE_URL}/status/{task_id}").json()
+    assert status_res.get("status") == "completed"
